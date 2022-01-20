@@ -1,0 +1,47 @@
+//this code is example page code for use on a blog page with a repeater to display the results
+//you must also have the Search app installed to enable the search API
+
+
+import wixSearch from "wix-search";
+
+$w.onReady(function () {
+  // Write your JavaScript here
+  $w("#searchResults").data = [];
+  //listen for the  custom event
+  $w("#customSearch").on("get-new-input", (e) => {
+    console.log("changed:" + e);
+    //get the search value
+    let searchValue = wixSearch.search(e.detail);
+    if(e.detail == "clear search" || e.detail.length <= 0 ){
+      //show all blogs
+      $w("#allPosts").show();
+      $w("#searchResults").data = [];
+    } else {
+      //filter blogs
+      searchValue
+        .documentType("Blog/Posts")
+        .find()
+        .then((results) => {
+          if (results.documents.length > 0) {
+            $w("#searchResults").data = results.documents;
+            console.log(results.documents);
+            $w("#allPosts").hide();
+          } else {
+            $w("#allPosts").show();
+            console.log("No matching results");
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } 
+  });
+
+  $w("#searchResults").onItemReady(($item, itemData) => {
+    $item("#title").text = itemData.title;
+    $item("#tags").text = itemData.tags[0];
+    $item("#description").text = itemData.description.substring(0, 100) + "...";
+    $item("#image2").src = itemData.image;
+    $item("#button3").link = itemData.url;
+  });
+});
