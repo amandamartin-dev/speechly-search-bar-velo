@@ -1,0 +1,119 @@
+//custom element code
+//this code should be placed in your backend folders at the path Public/custom-elements/yourFileName.js
+
+const createStyle = () => {
+  const styleElement = document.createElement('style');
+  styleElement.innerHTML = `
+   main {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+  align-items: center;
+	min-height: 25vh;
+  margin: 0;
+  padding: 0;
+}
+
+.group {
+  margin: 0 0 3rem 0;
+}
+
+input {
+  font-size: 1.5rem;
+  border: 1px solid #ccc;
+  padding: 0.5em;
+  border-radius: 30em;
+  background-color: #fff;
+}
+
+input:focus {
+  outline: none !important;
+  box-shadow: 0 0 10px #fff;
+}
+
+::placeholder {
+  color: #aaa;
+  opacity: 1;
+}
+
+.inputContainer {
+  position: relative;
+}
+
+.startAdornment {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+  align-items: center;
+  color: #aaa;
+  padding: 0.5rem;
+  font-size: 1.75rem;
+}
+
+.endAdornment {
+  position: absolute;
+  right: 0.3rem;
+  top: 0;
+  bottom: 0;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+  align-items: center;
+  color: #aaa;
+  padding: 0rem;
+}
+
+
+svg {
+  fill: currentColor;
+}
+
+#searchBox {
+  box-sizing: border-box;
+  width: 60vw;
+  min-width: 16rem;
+  max-width: 36rem;
+  padding-left: 3rem;
+}`;
+
+  return styleElement;
+};
+
+const createInputElement = () => {
+  const div = document.createElement('main');
+  const html =  `<div class="group">
+         <div class="inputContainer">
+           <input id="searchBox" type="text" placeholder="Search with voice..." autofocus>
+            <div class="startAdornment">🔍</div>
+           <push-to-talk-button size="2.8rem" class="endAdornment" fontsize="0.90rem" backgroundcolor="#104864" intro="Tap or hold for voice search" showtime="30000" appid="ead4b9e7-e5c4-48ed-9dae-3c530916ed76"/>
+         </div>
+       </div>`;
+    div.innerHTML = html;
+  return div;
+};
+
+class CustomVoiceSearch extends HTMLElement {
+  
+  connectedCallback() {
+    this.appendChild(createStyle());
+    this.appendChild(createInputElement());
+
+    document.getElementsByTagName("push-to-talk-button")[0]
+    .addEventListener("speechsegment", (e) => {
+    const segment = e.detail;
+    document.getElementById("searchBox").value = segment.words.filter(w => w.value).map(w => w.value.toLowerCase()).join(" ");
+    this.dispatchEvent(new CustomEvent('get-new-input', {  detail: document.getElementById("searchBox").value }));
+  });
+
+  document.getElementById("searchBox").addEventListener("input", (e) => {
+    this.dispatchEvent(new CustomEvent('get-new-input', {  detail: document.getElementById("searchBox").value }));
+  });
+
+  }
+}
+
+customElements.define('custom-voice-search',  CustomVoiceSearch);
